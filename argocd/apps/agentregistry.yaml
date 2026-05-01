@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     chart: agentregistry
-    repoURL: oci://ghcr.io/agentregistry-dev/agentregistry/charts
+    repoURL: ghcr.io/agentregistry-dev/agentregistry/charts
     targetRevision: "0.3.3"
     helm:
       parameters:
