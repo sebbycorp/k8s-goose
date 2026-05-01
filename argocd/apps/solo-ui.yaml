@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: solo-ui
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    chart: management
+    repoURL: us-docker.pkg.dev/solo-public/solo-enterprise-helm/charts
+    targetRevision: 0.3.19
+    helm:
+      parameters:
+        - name: cluster
+          value: mgmt-cluster
+        - name: products.agentgateway.enabled
+          value: "true"
+        - name: licensing.licenseKey
+          value: "eyJhZGRPbnMiOltdLCJleHAiOjE4MDE3NjE4MDUsImlhdCI6MTc2ODkyOTgwNSwiayI6InhmaVZxUSIsImx0IjoiZW50IiwicHJvZHVjdCI6ImFnZW50Z2F0ZXdheSJ9.pXPs0cMO6waOGdSkLqdJJxA9u0Ye2ojH4rtOdJAO8uI"
+          forceString: true
+  destination:
+    namespace: agentgateway-system
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: agentgateway-crds
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    chart: enterprise-agentgateway-crds
+    repoURL: us-docker.pkg.dev/solo-public/enterprise-agentgateway/charts
+    targetRevision: v2.3.2
+    helm:
+      skipCrds: false
+  destination:
+    namespace: agentgateway-system
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

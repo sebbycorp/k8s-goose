@@ -1,0 +1,17 @@
+# AgentgatewayBackend — defines an LLM provider backend.
+# This backend routes to OpenAI's chat completions API (gpt-4o model).
+# Auth is handled via a Kubernetes Secret containing the API key.
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: openai
+  namespace: agentgateway-system
+spec:
+  ai:
+    provider:
+      openai:
+        model: gpt-4o
+  policies:
+    auth:
+      secretRef:
+        name: openai-secret
