@@ -128,7 +128,7 @@ agentgateway-gitops/
 | **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/dgx-spark-llm-route.yaml` | Maps `/spark` → DGX Spark backend via dedicated gateway. |
 | **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/xai-grok-route.yaml` | Maps `/grok` → xAI Grok backend via dedicated gateway. |
 | **EnterpriseAgentgatewayPolicy** | `enterpriseagentgateway.solo.io/v1alpha1` | `config/policies/tracing.yaml` | Enables distributed tracing. Sends traces to the Solo telemetry collector (OTel gRPC :4317). 100% sampling. |
-| **BackendTLSPolicy** | `gateway.networking.k8s.io/v1alpha3` | `config/policies/xai-grok-backend-tls.yaml` | Enables HTTPS to xAI Grok backend (`api.x.ai`). Uses system CA trust store. |
+| **BackendTLSPolicy** | `gateway.networking.k8s.io/v1` | `config/policies/xai-grok-backend-tls.yaml` | Enables HTTPS to xAI Grok backend (`api.x.ai`). Uses system CA trust store. |
 | **ClusterSecretStore** | `external-secrets.io/v1` | `config/external-secrets/cluster-secret-store.yaml` | Connects ESO to Vault via Kubernetes auth. Cluster-wide scope. |
 | **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/openai-external-secret.yaml` | Syncs OpenAI API key from Vault → K8s Secret `openai-secret`. Refreshes hourly. |
 | **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/xai-external-secret.yaml` | Syncs xAI API key from Vault → K8s Secret `xai-secret`. Refreshes hourly. |
