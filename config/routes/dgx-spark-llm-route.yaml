@@ -11,7 +11,7 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /dgx-spark-llm
+            value: /dgx
       backendRefs:
         - name: dgx-spark-llm
           namespace: agentgateway-system

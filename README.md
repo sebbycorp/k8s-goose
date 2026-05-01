@@ -72,7 +72,7 @@ agentgateway-gitops/
 │   │   └── dgx-spark-llm.yaml        # Local Qwen model on DGX Spark (172.16.10.173)
 │   ├── routes/
 │   │   ├── openai-route.yaml          # HTTPRoute mapping /openai → OpenAI backend
-│   │   └── dgx-spark-llm-route.yaml   # HTTPRoute mapping /dgx-spark-llm → DGX Spark
+│   │   └── dgx-spark-llm-route.yaml   # HTTPRoute mapping /dgx → DGX Spark
 │   ├── policies/
 │   │   └── tracing.yaml               # Distributed tracing via OTel to Solo collector
 │   ├── external-secrets/
@@ -112,9 +112,9 @@ agentgateway-gitops/
 | **Gateway** | `gateway.networking.k8s.io/v1` | `config/gateway/gateway.yaml` | Main proxy instance. Listens on port 80 HTTP. Routes to cloud LLM backends. |
 | **Gateway (DGX Spark)** | `gateway.networking.k8s.io/v1` | `config/gateway/dgx-spark-gateway.yaml` | Dedicated proxy for the local DGX Spark LLM at `172.16.10.173:8000`. |
 | **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/openai.yaml` | OpenAI backend — model `gpt-4o`. Auth via Vault-synced Secret. |
-| **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/dgx-spark-llm.yaml` | Local Qwen/Qwen3.6-35B-A3B-FP8 on DGX Spark (`172.16.10.173:8000`). No auth required. |
+| **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/dgx.yaml` | Local Qwen/Qwen3.6-35B-A3B-FP8 on DGX Spark (`172.16.10.173:8000`). No auth required. |
 | **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/openai-route.yaml` | Maps `/openai` → OpenAI backend via main gateway. |
-| **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/dgx-spark-llm-route.yaml` | Maps `/dgx-spark-llm` → DGX Spark backend via dedicated gateway. |
+| **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/dgx-route.yaml` | Maps `/dgx` → DGX Spark backend via dedicated gateway. |
 | **EnterpriseAgentgatewayPolicy** | `enterpriseagentgateway.solo.io/v1alpha1` | `config/policies/tracing.yaml` | Enables distributed tracing. Sends traces to the Solo telemetry collector (OTel gRPC :4317). 100% sampling. |
 | **ClusterSecretStore** | `external-secrets.io/v1` | `config/external-secrets/cluster-secret-store.yaml` | Connects ESO to Vault via Kubernetes auth. Cluster-wide scope. |
 | **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/openai-external-secret.yaml` | Syncs OpenAI API key from Vault → K8s Secret `openai-secret`. Refreshes hourly. |
