@@ -65,6 +65,13 @@ else
   echo "    AZURE_OPENAI_API_KEY not set — skipping"
 fi
 
+if [[ -n "${XAI_API_KEY:-}" ]]; then
+  kubectl exec -n "$VAULT_NS" vault-0 -- vault kv put agentgateway/llm-keys/xai Authorization="$XAI_API_KEY"
+  echo "    xAI key stored"
+else
+  echo "    XAI_API_KEY not set — skipping"
+fi
+
 echo ""
 echo "==> Vault configured. Secrets stored at agentgateway/llm-keys/<provider>"
 echo "    To add a key later:"

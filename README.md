@@ -27,6 +27,7 @@ Production-grade GitOps pipeline for [Solo Enterprise AgentGateway](https://docs
 | AgentGateway Controller | agentgateway-system | `enterprise-agentgateway` | Running |
 | AgentGateway Proxy | agentgateway-system | `agentgateway-proxy` | Running, PROGRAMMED |
 | DGX Spark Gateway | agentgateway-system | `dgx-spark-gateway` | Running, PROGRAMMED |
+| xAI Grok Gateway | agentgateway-system | `xai-grok-gateway` | Pending deploy |
 | Ext-Auth / Cache / Rate Limiter | agentgateway-system | 3 pods | Running |
 | Solo UI | agentgateway-system | `solo-enterprise-ui` (4 containers) | Running |
 | Telemetry Collector + ClickHouse | agentgateway-system | 2 pods | Running |
@@ -48,6 +49,7 @@ Production-grade GitOps pipeline for [Solo Enterprise AgentGateway](https://docs
 | **Solo UI** | `http://172.16.10.149:30854/age/` | 30854 |
 | **Gateway Proxy (OpenAI)** | `http://172.16.10.149:30160/` | 30160 |
 | **DGX Spark Gateway** | `http://172.16.10.149:31944/` | 31944 |
+| **xAI Grok Gateway** | `http://172.16.10.149:<NodePort>/` | TBD (assigned on deploy) |
 | **Vault UI** | `http://172.16.10.149:31495/` | 31495 |
 | **ArgoCD** | port-forward `kubectl port-forward svc/argocd-server -n argocd 8443:443` | — |
 
@@ -68,18 +70,22 @@ agentgateway-gitops/
 ├── config/
 │   ├── gateway/
 │   │   ├── gateway.yaml               # Gateway proxy listener (port 80 HTTP)
-│   │   └── dgx-spark-gateway.yaml     # Dedicated gateway for DGX Spark LLM
+│   │   ├── dgx-spark-gateway.yaml     # Dedicated gateway for DGX Spark LLM
+│   │   └── xai-grok-gateway.yaml     # Dedicated gateway for xAI Grok
 │   ├── backends/
 │   │   ├── openai.yaml                # OpenAI LLM backend (gpt-4o)
-│   │   └── dgx-spark-llm.yaml        # Local Qwen model on DGX Spark (172.16.10.173)
+│   │   ├── dgx-spark-llm.yaml        # Local Qwen model on DGX Spark (172.16.10.173)
+│   │   └── xai-grok.yaml            # xAI Grok backend (api.x.ai)
 │   ├── routes/
 │   │   ├── openai-route.yaml          # HTTPRoute mapping /openai → OpenAI backend
-│   │   └── dgx-spark-llm-route.yaml   # HTTPRoute mapping /spark → DGX Spark
+│   │   ├── dgx-spark-llm-route.yaml   # HTTPRoute mapping /spark → DGX Spark
+│   │   └── xai-grok-route.yaml       # HTTPRoute mapping /grok → xAI Grok
 │   ├── policies/
 │   │   └── tracing.yaml               # Distributed tracing via OTel to Solo collector
 │   ├── external-secrets/
 │   │   ├── cluster-secret-store.yaml  # ClusterSecretStore → Vault via K8s auth
-│   │   └── openai-external-secret.yaml # ExternalSecret: Vault → openai-secret
+│   │   ├── openai-external-secret.yaml # ExternalSecret: Vault → openai-secret
+│   │   └── xai-external-secret.yaml   # ExternalSecret: Vault → xai-secret
 │   └── secrets/                       # (empty — secrets managed by Vault now)
 ├── platform/
 │   └── gateway-api-crds/
@@ -113,13 +119,17 @@ agentgateway-gitops/
 |----------|-----------|------|--------------|
 | **Gateway** | `gateway.networking.k8s.io/v1` | `config/gateway/gateway.yaml` | Main proxy instance. Listens on port 80 HTTP. Routes to cloud LLM backends. |
 | **Gateway (DGX Spark)** | `gateway.networking.k8s.io/v1` | `config/gateway/dgx-spark-gateway.yaml` | Dedicated proxy for the local DGX Spark LLM at `172.16.10.173:8000`. |
+| **Gateway (xAI Grok)** | `gateway.networking.k8s.io/v1` | `config/gateway/xai-grok-gateway.yaml` | Dedicated proxy for xAI Grok API (`api.x.ai`). |
 | **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/openai.yaml` | OpenAI backend — model `gpt-4o`. Auth via Vault-synced Secret. |
 | **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/dgx-spark-llm.yaml` | Local Qwen/Qwen3.6-35B-A3B-FP8 on DGX Spark (`172.16.10.173:8000`). No auth required. |
+| **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/xai-grok.yaml` | xAI Grok-3 backend (`api.x.ai:443`). Auth via Vault-synced Secret. |
 | **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/openai-route.yaml` | Maps `/openai` → OpenAI backend via main gateway. |
 | **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/dgx-spark-llm-route.yaml` | Maps `/spark` → DGX Spark backend via dedicated gateway. |
+| **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/xai-grok-route.yaml` | Maps `/grok` → xAI Grok backend via dedicated gateway. |
 | **EnterpriseAgentgatewayPolicy** | `enterpriseagentgateway.solo.io/v1alpha1` | `config/policies/tracing.yaml` | Enables distributed tracing. Sends traces to the Solo telemetry collector (OTel gRPC :4317). 100% sampling. |
 | **ClusterSecretStore** | `external-secrets.io/v1` | `config/external-secrets/cluster-secret-store.yaml` | Connects ESO to Vault via Kubernetes auth. Cluster-wide scope. |
 | **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/openai-external-secret.yaml` | Syncs OpenAI API key from Vault → K8s Secret `openai-secret`. Refreshes hourly. |
+| **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/xai-external-secret.yaml` | Syncs xAI API key from Vault → K8s Secret `xai-secret`. Refreshes hourly. |
 
 ## Deployment Order (Sync Waves)
 
@@ -202,6 +212,11 @@ curl http://172.16.10.149:30160/openai/v1/chat/completions \
 curl http://172.16.10.149:31944/spark/v1/chat/completions \
   -H "content-type: application/json" \
   -d '{"model":"Qwen/Qwen3.6-35B-A3B-FP8","messages":[{"role":"user","content":"Hello!"}]}' | jq
+
+# xAI Grok Gateway
+curl http://172.16.10.149:<NodePort>/grok/v1/chat/completions \
+  -H "content-type: application/json" \
+  -d '{"model":"grok-3","messages":[{"role":"user","content":"Hello!"}]}' | jq
 ```
 
 **Via port-forward (any cluster):**
@@ -223,6 +238,7 @@ LLM API keys are stored in HashiCorp Vault and automatically synced to Kubernete
 Vault (KV v2)                    ESO                         K8s Secret               AgentGateway
 agentgateway/llm-keys/openai  →  ExternalSecret  →  openai-secret  →  AgentgatewayBackend
 agentgateway/llm-keys/anthropic → ExternalSecret  →  anthropic-secret → AgentgatewayBackend
+agentgateway/llm-keys/xai     →  ExternalSecret  →  xai-secret     →  AgentgatewayBackend
 ```
 
 ### Initial Setup (one-time)

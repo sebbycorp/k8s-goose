@@ -1,0 +1,17 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: xai-grok
+  namespace: agentgateway-system
+spec:
+  ai:
+    provider:
+      openai:
+        model: grok-3
+      host: api.x.ai
+      port: 443
+      pathPrefix: /v1
+  policies:
+    auth:
+      secretRef:
+        name: xai-secret
