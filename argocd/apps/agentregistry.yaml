@@ -8,19 +8,11 @@ metadata:
 spec:
   project: default
   source:
-    chart: agentregistry
-    repoURL: ghcr.io/agentregistry-dev/agentregistry/charts
-    targetRevision: "0.3.3"
-    helm:
-      parameters:
-        - name: service.type
-          value: NodePort
-        - name: service.nodePorts.mcp
-          value: "31313"
-        - name: database.postgres.bundled.enabled
-          value: "true"
-        - name: rbac.watchedNamespaces[0]
-          value: agentgateway-system
+    repoURL: https://github.com/sebastianmaniak/k8s-goose.git
+    targetRevision: main
+    path: agentregistry/server
+    directory:
+      recurse: true
   destination:
     namespace: agentgateway-system
     server: https://kubernetes.default.svc
