@@ -1,0 +1,12 @@
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: mcp-server-everything
+  version: 1.0.0
+  labels:
+    platform: agentgateway
+    environment: dev
+spec:
+  description: "Demo MCP server with sample tools, resources, and prompts for testing"
+  image: node:20-alpine
+  transport: streamable-http
