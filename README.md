@@ -32,16 +32,22 @@ Production-grade GitOps pipeline for [Solo Enterprise AgentGateway](https://docs
 | **HashiCorp Vault** | vault | `vault-0` (dev mode) | Running |
 | **External Secrets Operator** | external-secrets | 3 pods (controller, webhook, cert) | Running |
 
-### Access (NodePort — single worker bare-metal cluster)
+### Cluster Nodes
+
+| Role | Hostname | IP | OS |
+|------|----------|----|----|
+| Control Plane | talos-0yo-2th | `172.16.10.156` | Talos v1.11.5 |
+| Worker | talos-9kw-b68 | `172.16.10.149` | Talos v1.11.5 |
+| DGX Spark (local LLM) | — | `172.16.10.173` | — |
+
+### Access (NodePort — bare-metal cluster)
 
 | Service | URL | NodePort |
 |---------|-----|----------|
-| **Solo UI** | `http://<worker-ip>:30854/age/` | 30854 |
-| **Gateway Proxy** | `http://<worker-ip>:30160/` | 30160 |
-| **Vault UI** | `http://<worker-ip>:31495/` | 31495 |
+| **Solo UI** | `http://172.16.10.149:30854/age/` | 30854 |
+| **Gateway Proxy** | `http://172.16.10.149:30160/` | 30160 |
+| **Vault UI** | `http://172.16.10.149:31495/` | 31495 |
 | **ArgoCD** | port-forward `kubectl port-forward svc/argocd-server -n argocd 8443:443` | — |
-
-Worker node IP: `172.16.10.149`
 
 ## Repository Structure
 
@@ -59,11 +65,14 @@ agentgateway-gitops/
 │       └── agentgateway-config.yaml   # Wave 7: Runtime config (routes, backends, etc.)
 ├── config/
 │   ├── gateway/
-│   │   └── gateway.yaml               # Gateway proxy listener (port 80 HTTP)
+│   │   ├── gateway.yaml               # Gateway proxy listener (port 80 HTTP)
+│   │   └── dgx-spark-gateway.yaml     # Dedicated gateway for DGX Spark LLM
 │   ├── backends/
-│   │   └── openai.yaml                # OpenAI LLM backend (gpt-4o)
+│   │   ├── openai.yaml                # OpenAI LLM backend (gpt-4o)
+│   │   └── dgx-spark-llm.yaml        # Local Qwen model on DGX Spark (172.16.10.173)
 │   ├── routes/
-│   │   └── openai-route.yaml          # HTTPRoute mapping /openai → OpenAI backend
+│   │   ├── openai-route.yaml          # HTTPRoute mapping /openai → OpenAI backend
+│   │   └── dgx-spark-llm-route.yaml   # HTTPRoute mapping /dgx-spark-llm → DGX Spark
 │   ├── policies/
 │   │   └── tracing.yaml               # Distributed tracing via OTel to Solo collector
 │   ├── external-secrets/
@@ -100,9 +109,12 @@ agentgateway-gitops/
 
 | Resource | API Group | File | What It Does |
 |----------|-----------|------|--------------|
-| **Gateway** | `gateway.networking.k8s.io/v1` | `config/gateway/gateway.yaml` | Creates the proxy instance. Listens on port 80 HTTP. Accepts routes from all namespaces. Uses the `enterprise-agentgateway` GatewayClass. |
-| **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/openai.yaml` | Defines an LLM provider endpoint. Points to OpenAI with model `gpt-4o`. References a Secret for API auth. |
-| **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/openai-route.yaml` | Maps path `/openai` to the OpenAI backend. Attaches to the gateway via `parentRefs`. |
+| **Gateway** | `gateway.networking.k8s.io/v1` | `config/gateway/gateway.yaml` | Main proxy instance. Listens on port 80 HTTP. Routes to cloud LLM backends. |
+| **Gateway (DGX Spark)** | `gateway.networking.k8s.io/v1` | `config/gateway/dgx-spark-gateway.yaml` | Dedicated proxy for the local DGX Spark LLM at `172.16.10.173:8000`. |
+| **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/openai.yaml` | OpenAI backend — model `gpt-4o`. Auth via Vault-synced Secret. |
+| **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/dgx-spark-llm.yaml` | Local Qwen/Qwen3.6-35B-A3B-FP8 on DGX Spark (`172.16.10.173:8000`). No auth required. |
+| **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/openai-route.yaml` | Maps `/openai` → OpenAI backend via main gateway. |
+| **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/dgx-spark-llm-route.yaml` | Maps `/dgx-spark-llm` → DGX Spark backend via dedicated gateway. |
 | **EnterpriseAgentgatewayPolicy** | `enterpriseagentgateway.solo.io/v1alpha1` | `config/policies/tracing.yaml` | Enables distributed tracing. Sends traces to the Solo telemetry collector (OTel gRPC :4317). 100% sampling. |
 | **ClusterSecretStore** | `external-secrets.io/v1` | `config/external-secrets/cluster-secret-store.yaml` | Connects ESO to Vault via Kubernetes auth. Cluster-wide scope. |
 | **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/openai-external-secret.yaml` | Syncs OpenAI API key from Vault → K8s Secret `openai-secret`. Refreshes hourly. |
@@ -174,13 +186,13 @@ kubectl get gateway,httproute,agentgatewaybackend,enterpriseagentgatewaypolicy -
 
 ### 6. Access
 
-**Via NodePort (bare-metal / single worker):**
+**Via NodePort (bare-metal):**
 ```bash
 # Solo UI
-open http://<worker-ip>:30854/age/
+open http://172.16.10.149:30854/age/
 
-# Gateway Proxy
-curl http://<worker-ip>:30160/openai/v1/chat/completions \
+# Gateway Proxy — OpenAI
+curl http://172.16.10.149:30160/openai/v1/chat/completions \
   -H "content-type: application/json" \
   -d '{"model":"","messages":[{"role":"user","content":"Hello!"}]}' | jq
 ```
