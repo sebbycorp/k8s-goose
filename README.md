@@ -81,7 +81,8 @@ agentgateway-gitops/
 │   │   ├── dgx-spark-llm-route.yaml   # HTTPRoute mapping /spark → DGX Spark
 │   │   └── xai-grok-route.yaml       # HTTPRoute mapping /grok → xAI Grok
 │   ├── policies/
-│   │   └── tracing.yaml               # Distributed tracing via OTel to Solo collector
+│   │   ├── tracing.yaml               # Distributed tracing via OTel to Solo collector
+│   │   └── xai-grok-backend-tls.yaml  # BackendTLSPolicy for xAI Grok HTTPS
 │   ├── external-secrets/
 │   │   ├── cluster-secret-store.yaml  # ClusterSecretStore → Vault via K8s auth
 │   │   ├── openai-external-secret.yaml # ExternalSecret: Vault → openai-secret
@@ -122,11 +123,12 @@ agentgateway-gitops/
 | **Gateway (xAI Grok)** | `gateway.networking.k8s.io/v1` | `config/gateway/xai-grok-gateway.yaml` | Dedicated proxy for xAI Grok API (`api.x.ai`). |
 | **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/openai.yaml` | OpenAI backend — model `gpt-4o`. Auth via Vault-synced Secret. |
 | **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/dgx-spark-llm.yaml` | Local Qwen/Qwen3.6-35B-A3B-FP8 on DGX Spark (`172.16.10.173:8000`). No auth required. |
-| **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/xai-grok.yaml` | xAI Grok-3 backend (`api.x.ai:443`). Auth via Vault-synced Secret. |
+| **AgentgatewayBackend** | `agentgateway.dev/v1alpha1` | `config/backends/xai-grok.yaml` | xAI Grok-4.3 backend (`api.x.ai:443`). Auth via Vault-synced Secret. |
 | **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/openai-route.yaml` | Maps `/openai` → OpenAI backend via main gateway. |
 | **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/dgx-spark-llm-route.yaml` | Maps `/spark` → DGX Spark backend via dedicated gateway. |
 | **HTTPRoute** | `gateway.networking.k8s.io/v1` | `config/routes/xai-grok-route.yaml` | Maps `/grok` → xAI Grok backend via dedicated gateway. |
 | **EnterpriseAgentgatewayPolicy** | `enterpriseagentgateway.solo.io/v1alpha1` | `config/policies/tracing.yaml` | Enables distributed tracing. Sends traces to the Solo telemetry collector (OTel gRPC :4317). 100% sampling. |
+| **BackendTLSPolicy** | `gateway.networking.k8s.io/v1alpha3` | `config/policies/xai-grok-backend-tls.yaml` | Enables HTTPS to xAI Grok backend (`api.x.ai`). Uses system CA trust store. |
 | **ClusterSecretStore** | `external-secrets.io/v1` | `config/external-secrets/cluster-secret-store.yaml` | Connects ESO to Vault via Kubernetes auth. Cluster-wide scope. |
 | **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/openai-external-secret.yaml` | Syncs OpenAI API key from Vault → K8s Secret `openai-secret`. Refreshes hourly. |
 | **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/xai-external-secret.yaml` | Syncs xAI API key from Vault → K8s Secret `xai-secret`. Refreshes hourly. |
@@ -216,7 +218,7 @@ curl http://172.16.10.149:31944/spark/v1/chat/completions \
 # xAI Grok Gateway
 curl http://172.16.10.149:<NodePort>/grok/v1/chat/completions \
   -H "content-type: application/json" \
-  -d '{"model":"grok-3","messages":[{"role":"user","content":"Hello!"}]}' | jq
+  -d '{"model":"grok-4.3","messages":[{"role":"user","content":"Hello!"}]}' | jq
 ```
 
 **Via port-forward (any cluster):**
