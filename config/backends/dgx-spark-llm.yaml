@@ -1,0 +1,13 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: dgx-spark-llm
+  namespace: agentgateway-system
+spec:
+  ai:
+    provider:
+      openai:
+        model: Qwen/Qwen3.6-35B-A3B-FP8
+        customHost:
+          host: 172.16.10.173
+          port: 8000
