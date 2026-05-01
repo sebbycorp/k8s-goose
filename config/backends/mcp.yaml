@@ -1,0 +1,18 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: mcp
+  namespace: agentgateway-system
+spec:
+  mcp:
+    targets:
+      - name: mcp-server-everything
+        selector:
+          services:
+            matchLabels:
+              app: mcp-server-everything
+      - name: mcp-website-fetcher
+        static:
+          host: mcp-website-fetcher.agentgateway-system.svc.cluster.local
+          port: 80
+          protocol: SSE
