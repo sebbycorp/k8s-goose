@@ -69,26 +69,6 @@ data:
   AGENT_REGISTRY_ENABLE_ANONYMOUS_AUTH: "true"
   AGENT_REGISTRY_DISABLE_BUILTIN_SEED: "true"
 ---
-# Source: agentregistry/templates/postgresql.yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: agentregistry-postgresql
-  labels:
-    helm.sh/chart: agentregistry-0.3.3
-    app.kubernetes.io/name: agentregistry
-    app.kubernetes.io/instance: agentregistry
-    app.kubernetes.io/component: database
-    app.kubernetes.io/version: "0.3.3"
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/part-of: agentregistry
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
----
 # Source: agentregistry/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -509,5 +489,4 @@ spec:
               mountPath: /var/lib/postgresql/data
       volumes:
         - name: data
-          persistentVolumeClaim:
-            claimName: agentregistry-postgresql
+          emptyDir: {}
