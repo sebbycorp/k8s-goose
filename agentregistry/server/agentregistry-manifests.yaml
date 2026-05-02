@@ -318,7 +318,7 @@ spec:
               done
       containers:
         - name: agentregistry
-          image: ghcr.io/agentregistry-dev/agentregistry/server:0.3.3
+          image: ghcr.io/agentregistry-dev/agentregistry/server:0.2.1
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
