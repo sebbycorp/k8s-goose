@@ -4,58 +4,20 @@ metadata:
   name: agentregistry-registrations
   namespace: agentgateway-system
 data:
-  mcp-server-everything.yaml: |
-    apiVersion: ar.dev/v1alpha1
-    kind: MCPServer
-    metadata:
-      name: mcp-server-everything
-      version: 1.0.0
-      labels:
-        platform: agentgateway
-        environment: dev
-    spec:
-      description: "Demo MCP server with sample tools, resources, and prompts for testing"
-      image: node:20-alpine
-      transport: streamable-http
-  mcp-website-fetcher.yaml: |
-    apiVersion: ar.dev/v1alpha1
-    kind: MCPServer
-    metadata:
-      name: mcp-website-fetcher
-      version: 1.0.0
-      labels:
-        platform: agentgateway
-        environment: dev
-    spec:
-      description: "Fetches and extracts content from websites via MCP"
-      image: ghcr.io/peterj/mcp-website-fetcher:main
-      transport: sse
-  remote-mcp-server-everything.yaml: |
-    apiVersion: ar.dev/v1alpha1
-    kind: RemoteMCPServer
-    metadata:
-      name: mcp-server-everything-remote
-      version: 1.0.0
-      labels:
-        platform: agentgateway
-        environment: dev
-    spec:
-      description: "In-cluster MCP server everything (streamable-http)"
-      url: "http://mcp-server-everything.agentgateway-system.svc.cluster.local:3001"
-      transport: streamable-http
-  remote-mcp-website-fetcher.yaml: |
-    apiVersion: ar.dev/v1alpha1
-    kind: RemoteMCPServer
-    metadata:
-      name: mcp-website-fetcher-remote
-      version: 1.0.0
-      labels:
-        platform: agentgateway
-        environment: dev
-    spec:
-      description: "In-cluster website fetcher (SSE)"
-      url: "http://mcp-website-fetcher.agentgateway-system.svc.cluster.local:80"
-      transport: sse
+  mcp-server-everything.json: |
+    {
+      "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+      "name": "agentgateway.dev/mcp-server-everything",
+      "description": "Demo MCP server with sample tools, resources, and prompts",
+      "version": "1.0.0"
+    }
+  mcp-website-fetcher.json: |
+    {
+      "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+      "name": "agentgateway.dev/mcp-website-fetcher",
+      "description": "Fetches and extracts content from websites via MCP",
+      "version": "1.0.0"
+    }
 ---
 apiVersion: batch/v1
 kind: Job
@@ -76,7 +38,7 @@ spec:
             - -c
             - |
               echo "Waiting for AgentRegistry to be ready..."
-              until curl -so /dev/null http://agentregistry.agentgateway-system.svc.cluster.local:12121/; do
+              until curl -so /dev/null http://agentregistry.agentgateway-system.svc.cluster.local:12121/v0/health; do
                 echo "AgentRegistry not ready, retrying in 5s..."
                 sleep 5
               done
@@ -90,12 +52,12 @@ spec:
             - |
               REGISTRY_URL="http://agentregistry.agentgateway-system.svc.cluster.local:12121"
               echo "Registering MCP servers with AgentRegistry..."
-              for manifest in /registrations/*.yaml; do
-                echo "--- Applying $(basename $manifest) ---"
-                curl -sf -X PUT \
-                  -H "Content-Type: application/yaml" \
+              for manifest in /registrations/*.json; do
+                echo "--- Registering $(basename $manifest) ---"
+                curl -s -X POST \
+                  -H "Content-Type: application/json" \
                   -d @"$manifest" \
-                  "$REGISTRY_URL/v0/apply"
+                  "$REGISTRY_URL/v0/servers"
                 echo ""
               done
               echo "All registrations complete!"
