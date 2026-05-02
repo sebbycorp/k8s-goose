@@ -76,7 +76,7 @@ spec:
             - -c
             - |
               echo "Waiting for AgentRegistry to be ready..."
-              until curl -sf http://agentregistry.agentgateway-system.svc.cluster.local:12121/healthz; do
+              until curl -so /dev/null http://agentregistry.agentgateway-system.svc.cluster.local:12121/; do
                 echo "AgentRegistry not ready, retrying in 5s..."
                 sleep 5
               done
