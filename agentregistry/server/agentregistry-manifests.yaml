@@ -307,7 +307,7 @@ spec:
             weight: 1
       initContainers:
         - name: wait-for-postgres
-          image: docker.io/library/postgres:18
+          image: pgvector/pgvector:pg17
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -431,7 +431,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: postgresql
-          image: docker.io/library/postgres:18
+          image: pgvector/pgvector:pg17
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
