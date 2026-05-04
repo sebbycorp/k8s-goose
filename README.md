@@ -61,8 +61,8 @@ agentgateway-gitops/
 │   ├── app-of-apps.yaml              # Root Application — deploys everything
 │   └── apps/
 │       ├── gateway-api-crds.yaml      # Wave 1: Gateway API CRDs v1.5.0
-│       ├── agentgateway-crds.yaml     # Wave 2: AgentGateway CRDs v2.3.2
-│       ├── agentgateway-control-plane.yaml  # Wave 3: Control plane v2.3.2
+│       ├── agentgateway-crds.yaml     # Wave 2: AgentGateway CRDs v2.3.3
+│       ├── agentgateway-control-plane.yaml  # Wave 3: Control plane v2.3.3
 │       ├── vault.yaml                 # Wave 4: HashiCorp Vault (dev mode)
 │       ├── external-secrets.yaml      # Wave 5: External Secrets Operator
 │       ├── solo-ui.yaml               # Wave 6: Solo UI management v0.3.19
@@ -108,8 +108,8 @@ agentgateway-gitops/
 | Component | Chart | Version | Purpose |
 |-----------|-------|---------|---------|
 | **Gateway API CRDs** | upstream YAML | v1.5.0 | Kubernetes Gateway API types (Gateway, HTTPRoute, etc.) |
-| **AgentGateway CRDs** | `enterprise-agentgateway-crds` | v2.3.2 | Custom types: `AgentgatewayBackend`, `EnterpriseAgentgatewayPolicy` |
-| **Control Plane** | `enterprise-agentgateway` | v2.3.2 | Controller + proxy that processes Gateway API resources |
+| **AgentGateway CRDs** | `enterprise-agentgateway-crds` | v2.3.3 | Custom types: `AgentgatewayBackend`, `EnterpriseAgentgatewayPolicy` |
+| **Control Plane** | `enterprise-agentgateway` | v2.3.3 | Controller + proxy that processes Gateway API resources |
 | **HashiCorp Vault** | `vault` | 0.32.0 | Secrets management — stores LLM API keys securely |
 | **External Secrets Operator** | `external-secrets` | 0.16.2 | Syncs Vault secrets into Kubernetes Secrets automatically |
 | **Solo UI** | `management` | 0.3.19 | Dashboard with tracing, playground, and route visualization |
@@ -306,7 +306,7 @@ open http://172.16.10.149:31495
 3. Commit and push — ArgoCD auto-syncs the changes
 
 ```bash
-sed -i 's/v2.3.2/v2.4.0/g' argocd/apps/agentgateway-crds.yaml argocd/apps/agentgateway-control-plane.yaml
+sed -i 's/v2.3.3/v2.4.0/g' argocd/apps/agentgateway-crds.yaml argocd/apps/agentgateway-control-plane.yaml
 git add -A && git commit -m "Upgrade AgentGateway to v2.4.0" && git push
 ```
 

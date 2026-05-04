@@ -10,7 +10,7 @@ spec:
   source:
     chart: enterprise-agentgateway
     repoURL: us-docker.pkg.dev/solo-public/enterprise-agentgateway/charts
-    targetRevision: v2.3.2
+    targetRevision: v2.3.3
     helm:
       skipCrds: false
       parameters:

@@ -12,8 +12,8 @@ Kubernetes-native API gateway for AI workloads built on the Gateway API. Routes 
 | Component | Chart | Version | OCI Registry |
 |-----------|-------|---------|--------------|
 | Gateway API CRDs | upstream YAML | v1.5.0 | `github.com/kubernetes-sigs/gateway-api` |
-| AgentGateway CRDs | `enterprise-agentgateway-crds` | v2.3.2 | `us-docker.pkg.dev/solo-public/enterprise-agentgateway/charts` |
-| Control Plane | `enterprise-agentgateway` | v2.3.2 | `us-docker.pkg.dev/solo-public/enterprise-agentgateway/charts` |
+| AgentGateway CRDs | `enterprise-agentgateway-crds` | v2.3.3 | `us-docker.pkg.dev/solo-public/enterprise-agentgateway/charts` |
+| Control Plane | `enterprise-agentgateway` | v2.3.3 | `us-docker.pkg.dev/solo-public/enterprise-agentgateway/charts` |
 | Solo UI | `management` | 0.3.19 | `us-docker.pkg.dev/solo-public/solo-enterprise-helm/charts` |
 
 | Resource | API Group | Purpose |
@@ -43,7 +43,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/downloa
 ```bash
 helm upgrade -i --create-namespace \
   --namespace agentgateway-system \
-  --version v2.3.2 enterprise-agentgateway-crds \
+  --version v2.3.3 enterprise-agentgateway-crds \
   oci://us-docker.pkg.dev/solo-public/enterprise-agentgateway/charts/enterprise-agentgateway-crds
 ```
 
@@ -51,7 +51,7 @@ helm upgrade -i --create-namespace \
 ```bash
 helm upgrade -i -n agentgateway-system enterprise-agentgateway \
   oci://us-docker.pkg.dev/solo-public/enterprise-agentgateway/charts/enterprise-agentgateway \
-  --version v2.3.2 \
+  --version v2.3.3 \
   --set-string licensing.licenseKey=${AGENTGATEWAY_LICENSE_KEY}
 ```
 
@@ -112,8 +112,8 @@ kubectl get applications -n argocd    # Watch sync status
 ### ArgoCD Application Structure (sync-wave ordered)
 ```
 Wave 1: gateway-api-crds          (Kustomize → upstream CRDs)
-Wave 2: agentgateway-crds         (Helm → enterprise-agentgateway-crds v2.3.2)
-Wave 3: agentgateway-control-plane (Helm → enterprise-agentgateway v2.3.2 + license)
+Wave 2: agentgateway-crds         (Helm → enterprise-agentgateway-crds v2.3.3)
+Wave 3: agentgateway-control-plane (Helm → enterprise-agentgateway v2.3.3 + license)
 Wave 4: solo-ui                   (Helm → management v0.3.19 + license)
 Wave 5: agentgateway-config       (Plain YAML → gateway, backends, routes, policies)
 ```
