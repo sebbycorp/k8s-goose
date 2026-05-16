@@ -1,0 +1,35 @@
+name: Validate Manifests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubeconform
+        uses: yannh/kubernetes-kubeconform-action@master
+        with:
+          version: v0.6.4
+          strict: true
+          ignore-missing-schemas: true
+
+      - name: Validate Kubernetes manifests
+        run: |
+          kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}/{{ .ResourceKind }}_{{ .Group }}_{{ .ResourceAPIVersion }}.json' \
+            -skip CustomResourceDefinition \
+            $(find . -name "*.yaml" -o -name "*.yml" | grep -v ".git") || true
+
+      - name: Check ArgoCD Applications
+        run: |
+          echo "Checking ArgoCD Application manifests..."
+          for file in $(find argocd/apps -name "*.yaml"); do
+            echo "Validating $file"
+            head -20 "$file"
+          done
