@@ -13,16 +13,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup kubeconform
-        uses: yannh/kubernetes-kubeconform-action@master
-        with:
-          version: v0.6.4
-          strict: true
-          ignore-missing-schemas: true
+      - name: Install kubeconform
+        run: |
+          curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
+          kubeconform -v
 
       - name: Validate Kubernetes manifests
         run: |
-          kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}/{{ .ResourceKind }}_{{ .Group }}_{{ .ResourceAPIVersion }}.json' \
+          kubeconform -schema-location default \
             -skip CustomResourceDefinition \
             $(find . -name "*.yaml" -o -name "*.yml" | grep -v ".git") || true
 
