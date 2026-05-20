@@ -14,7 +14,7 @@ spec:
     helm:
       parameters:
         - name: licensing.licenseKey
-          value: "$KAGENT_ENTERPRISE_LICENSE_KEY"
+          value: "DUMMY-KAGENT-ENT"
           forceString: true
         - name: cluster
           value: mgmt-cluster
