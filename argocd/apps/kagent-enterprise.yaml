@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kagent-enterprise
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  source:
+    chart: kagent-enterprise
+    repoURL: us-docker.pkg.dev/solo-public/kagent-enterprise-helm/charts
+    targetRevision: 0.9.4
+    helm:
+      parameters:
+        - name: licensing.licenseKey
+          value: eyJhZG...O8uI
+          forceString: true
+        - name: cluster
+          value: mgmt-cluster
+  destination:
+    namespace: kagent-system
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
