@@ -14,7 +14,7 @@ spec:
     helm:
       skipCrds: false
   destination:
-    namespace: kagent-system
+    namespace: kagent
     server: https://kubernetes.default.svc
   syncPolicy:
     automated:
