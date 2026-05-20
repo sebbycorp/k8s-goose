@@ -1,4 +1,4 @@
-# AgentGateway Enterprise 2.3.x — GitOps Deployment
+# AgentGateway + Kagent Enterprise — GitOps Deployment
 
 Production-grade GitOps pipeline for [Solo Enterprise AgentGateway](https://docs.solo.io/agentgateway/2.3.x/) managed by ArgoCD.
 
@@ -30,6 +30,7 @@ Production-grade GitOps pipeline for [Solo Enterprise AgentGateway](https://docs
 | xAI Grok Gateway | agentgateway-system | `xai-grok-gateway` | Pending deploy |
 | Ext-Auth / Cache / Rate Limiter | agentgateway-system | 3 pods | Running |
 | Solo UI | agentgateway-system | `solo-enterprise-ui` (4 containers) | Running |
+|| Kagent Enterprise | kagent | kagent-enterprise | Running |
 | Telemetry Collector + ClickHouse | agentgateway-system | 2 pods | Running |
 | **HashiCorp Vault** | vault | `vault-0` (dev mode) | Running |
 | **External Secrets Operator** | external-secrets | 3 pods (controller, webhook, cert) | Running |
@@ -66,6 +67,8 @@ agentgateway-gitops/
 │       ├── vault.yaml                 # Wave 4: HashiCorp Vault (dev mode)
 │       ├── external-secrets.yaml      # Wave 5: External Secrets Operator
 │       ├── solo-ui.yaml               # Wave 6: Solo UI management v0.3.19
+│       ├── kagent-enterprise-crds.yaml   # Wave 2b: Kagent CRDs
+│       ├── kagent-enterprise.yaml        # Wave 3b: Kagent Enterprise
 │       └── agentgateway-config.yaml   # Wave 7: Runtime config (routes, backends, etc.)
 ├── config/
 │   ├── gateway/
