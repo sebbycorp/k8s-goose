@@ -30,7 +30,7 @@ Production-grade GitOps pipeline for [Solo Enterprise AgentGateway](https://docs
 | xAI Grok Gateway | agentgateway-system | `xai-grok-gateway` | Pending deploy |
 | Ext-Auth / Cache / Rate Limiter | agentgateway-system | 3 pods | Running |
 | Solo UI | agentgateway-system | `solo-enterprise-ui` (4 containers) | Running |
-|| Kagent Enterprise | kagent | kagent-enterprise | Running |
+| Kagent Enterprise | kagent | kagent-enterprise (v0.4.0) | License key required |
 | Telemetry Collector + ClickHouse | agentgateway-system | 2 pods | Running |
 | **HashiCorp Vault** | vault | `vault-0` (dev mode) | Running |
 | **External Secrets Operator** | external-secrets | 3 pods (controller, webhook, cert) | Running |

@@ -1,20 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Injects the AGENTGATEWAY_LICENSE_KEY env var into the ArgoCD Application manifest.
-# Run this before applying the app-of-apps if you haven't set it in ArgoCD directly.
+# Injects license keys into ArgoCD Application manifests.
+# Supports both AgentGateway and Kagent Enterprise.
+# Run this before applying the app-of-apps (or let ArgoCD pick up the committed placeholder).
 
-if [[ -z "${AGENTGATEWAY_LICENSE_KEY:-}" ]]; then
-  echo "ERROR: AGENTGATEWAY_LICENSE_KEY is not set"
+AGENTGW_KEY="${AGENTGATEWAY_LICENSE_KEY:-}"
+KAGENT_KEY="${KAGENT_ENTERPRISE_LICENSE_KEY:-}"
+
+if [[ -z "$AGENTGW_KEY" && -z "$KAGENT_KEY" ]]; then
+  echo "ERROR: At least one of AGENTGATEWAY_LICENSE_KEY or KAGENT_ENTERPRISE_LICENSE_KEY must be set"
   exit 1
 fi
 
-MANIFEST="argocd/apps/agentgateway-control-plane.yaml"
-
 if [[ "$(uname)" == "Darwin" ]]; then
-  sed -i '' "s|\\\$AGENTGATEWAY_LICENSE_KEY|${AGENTGATEWAY_LICENSE_KEY}|g" "$MANIFEST"
+  SED_INPLACE=(sed -i '')
 else
-  sed -i "s|\\\$AGENTGATEWAY_LICENSE_KEY|${AGENTGATEWAY_LICENSE_KEY}|g" "$MANIFEST"
+  SED_INPLACE=(sed -i)
 fi
 
-echo "==> License key injected into $MANIFEST"
+if [[ -n "$AGENTGW_KEY" ]]; then
+  "${SED_INPLACE[@]}" "s|\\\$AGENTGATEWAY_LICENSE_KEY|${AGENTGW_KEY}|g" argocd/apps/agentgateway-control-plane.yaml
+  echo "==> AgentGateway license injected"
+fi
+
+if [[ -n "$KAGENT_KEY" ]]; then
+  "${SED_INPLACE[@]}" "s|\\\$KAGENT_ENTERPRISE_LICENSE_KEY|${KAGENT_KEY}|g" argocd/apps/kagent-enterprise.yaml
+  echo "==> Kagent Enterprise license injected"
+fi
+
+echo "Done. Review changes and commit if needed."

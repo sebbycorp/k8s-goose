@@ -10,7 +10,7 @@ spec:
   source:
     chart: kagent-enterprise-crds
     repoURL: us-docker.pkg.dev/solo-public/kagent-enterprise-helm/charts
-    targetRevision: 0.9.4
+    targetRevision: 0.4.0
     helm:
       skipCrds: false
   destination:

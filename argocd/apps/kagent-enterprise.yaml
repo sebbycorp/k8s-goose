@@ -10,11 +10,11 @@ spec:
   source:
     chart: kagent-enterprise
     repoURL: us-docker.pkg.dev/solo-public/kagent-enterprise-helm/charts
-    targetRevision: 0.9.4
+    targetRevision: 0.4.0
     helm:
       parameters:
         - name: licensing.licenseKey
-          value: eyJhZG...O8uI
+          value: "$KAGENT_ENTERPRISE_LICENSE_KEY"
           forceString: true
         - name: cluster
           value: mgmt-cluster
