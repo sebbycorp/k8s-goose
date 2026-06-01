@@ -10,7 +10,7 @@ spec:
   source:
     chart: management
     repoURL: us-docker.pkg.dev/solo-public/solo-enterprise-helm/charts
-    targetRevision: 0.4.1
+    targetRevision: 0.4.3
     helm:
       parameters:
         - name: cluster
