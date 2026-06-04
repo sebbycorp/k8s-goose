@@ -65,7 +65,7 @@ agentgateway-gitops/
 │       ├── agentgateway-control-plane.yaml  # Wave 3: Control plane v2026.5.2
 │       ├── vault.yaml                 # Wave 4: HashiCorp Vault (dev mode)
 │       ├── external-secrets.yaml      # Wave 5: External Secrets Operator
-│       ├── solo-ui.yaml               # Wave 6: Solo UI management v0.4.3
+│       ├── solo-ui.yaml               # Wave 6: Solo UI management v0.4.4
 │       └── agentgateway-config.yaml   # Wave 7: Runtime config (routes, backends, etc.)
 ├── config/
 │   ├── gateway/
@@ -112,7 +112,7 @@ agentgateway-gitops/
 | **Control Plane** | `enterprise-agentgateway` | v2026.5.2 | Controller + proxy that processes Gateway API resources |
 | **HashiCorp Vault** | `vault` | 0.32.0 | Secrets management — stores LLM API keys securely |
 | **External Secrets Operator** | `external-secrets` | 0.16.2 | Syncs Vault secrets into Kubernetes Secrets automatically |
-| **Solo UI** | `management` | 0.4.3 | Dashboard with tracing, playground, and route visualization |
+| **Solo UI** | `management` | 0.4.4 | Dashboard with tracing, playground, and route visualization |
 
 ### Config Layer (Plain YAML managed by ArgoCD)
 
