@@ -10,7 +10,7 @@ spec:
   source:
     chart: enterprise-agentgateway-crds
     repoURL: us-docker.pkg.dev/solo-public/enterprise-agentgateway/charts
-    targetRevision: v2026.5.2
+    targetRevision: v2026.6.0
     helm:
       skipCrds: false
   destination:
