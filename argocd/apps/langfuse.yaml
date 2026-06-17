@@ -14,6 +14,13 @@ spec:
     helm:
       valuesObject:
         langfuse:
+          # Expose the web UI via NodePort (bare-metal cluster convention).
+          # nextauth.url must match the externally-reachable address or browser
+          # login redirects break.
+          web:
+            service:
+              type: NodePort
+              nodePort: 30300
           salt:
             secretKeyRef:
               name: langfuse-secrets
@@ -23,6 +30,7 @@ spec:
               name: langfuse-secrets
               key: encryption-key
           nextauth:
+            url: http://172.16.10.149:30300
             secret:
               secretKeyRef:
                 name: langfuse-secrets

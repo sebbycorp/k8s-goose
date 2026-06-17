@@ -51,6 +51,7 @@ Production-grade GitOps pipeline for [Solo Enterprise AgentGateway](https://docs
 | **DGX Spark Gateway** | `http://172.16.10.149:31944/` | 31944 |
 | **xAI Grok Gateway** | `http://172.16.10.149:<NodePort>/` | TBD (assigned on deploy) |
 | **Vault UI** | `http://172.16.10.149:31495/` | 31495 |
+| **Langfuse** | `http://172.16.10.149:30300/` | 30300 |
 | **ArgoCD** | port-forward `kubectl port-forward svc/argocd-server -n argocd 8443:443` | — |
 
 ## Repository Structure
