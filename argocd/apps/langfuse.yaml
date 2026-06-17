@@ -94,3 +94,13 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+  # Bitnami StatefulSets (postgres/clickhouse/redis/zookeeper) show perpetual
+  # OutOfSync because the API server injects PVC-template metadata and a default
+  # persistentVolumeClaimRetentionPolicy the chart never renders. These fields are
+  # server-defaulted, not real drift — ignore them so the app reports Synced.
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/persistentVolumeClaimRetentionPolicy
+        - /spec/volumeClaimTemplates
