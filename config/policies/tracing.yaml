@@ -1,5 +1,5 @@
 # EnterpriseAgentgatewayPolicy — enables distributed tracing on the gateway.
-# Sends traces to the Solo Enterprise telemetry collector (deployed by the UI chart)
+# Sends traces to the otel-fanout-collector, which fans out to the Solo collector and Langfuse.
 # via OpenTelemetry gRPC on port 4317. Random sampling captures all requests.
 apiVersion: enterpriseagentgateway.solo.io/v1alpha1
 kind: EnterpriseAgentgatewayPolicy
@@ -23,7 +23,7 @@ spec:
   frontend:
     tracing:
       backendRef:
-        name: solo-enterprise-telemetry-collector
+        name: otel-fanout-collector
         namespace: agentgateway-system
         kind: Service
         port: 4317

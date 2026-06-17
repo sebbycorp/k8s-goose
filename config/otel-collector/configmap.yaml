@@ -1,0 +1,33 @@
+# OpenTelemetry Collector that fans AgentGateway traces out to two backends:
+#   1. solo-enterprise-telemetry-collector (gRPC) — keeps Solo UI tracing working
+#   2. Langfuse (OTLP/HTTP + Basic auth) — new
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-fanout-collector
+  namespace: agentgateway-system
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+    processors:
+      batch: {}
+    exporters:
+      otlp/solo:
+        endpoint: solo-enterprise-telemetry-collector:4317
+        tls:
+          insecure: true
+      otlphttp/langfuse:
+        endpoint: http://langfuse-web.langfuse:3000/api/public/otel
+        headers:
+          Authorization: "Basic ${env:LANGFUSE_AUTH}"
+          x-langfuse-ingestion-version: "4"
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/solo, otlphttp/langfuse]

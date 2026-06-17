@@ -72,6 +72,30 @@ else
   echo "    XAI_API_KEY not set — skipping"
 fi
 
+# ─── Seed Langfuse secrets (generate-if-absent; never rotates existing) ─────
+echo "==> Seeding Langfuse secrets into Vault..."
+if kubectl exec -n "$VAULT_NS" vault-0 -- vault kv get agentgateway/langfuse/config >/dev/null 2>&1; then
+  echo "    agentgateway/langfuse/config already exists — skipping (delete the path to rotate)"
+else
+  LF_PK="pk-lf-$(uuidgen | tr 'A-Z' 'a-z')"
+  LF_SK="sk-lf-$(uuidgen | tr 'A-Z' 'a-z')"
+  LF_AUTH="$(printf '%s:%s' "$LF_PK" "$LF_SK" | base64 | tr -d '\n')"
+  kubectl exec -n "$VAULT_NS" vault-0 -- vault kv put agentgateway/langfuse/config \
+    salt="$(openssl rand -hex 16)" \
+    encryption-key="$(openssl rand -hex 32)" \
+    nextauth-secret="$(openssl rand -base64 32)" \
+    postgres-password="$(openssl rand -hex 16)" \
+    clickhouse-password="$(openssl rand -hex 16)" \
+    redis-password="$(openssl rand -hex 16)" \
+    minio-root-user="minio" \
+    minio-password="$(openssl rand -hex 16)" \
+    init-public-key="$LF_PK" \
+    init-secret-key="$LF_SK" \
+    init-user-password="$(openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | head -c 20)"
+  kubectl exec -n "$VAULT_NS" vault-0 -- vault kv put agentgateway/langfuse/otel auth="$LF_AUTH"
+  echo "    Langfuse secrets stored (public key: $LF_PK)"
+fi
+
 echo ""
 echo "==> Vault configured. Secrets stored at agentgateway/llm-keys/<provider>"
 echo "    To add a key later:"
@@ -79,3 +103,7 @@ echo "    kubectl exec -n vault vault-0 -- vault kv put agentgateway/llm-keys/<p
 echo ""
 echo "    To list all keys:"
 echo "    kubectl exec -n vault vault-0 -- vault kv list agentgateway/llm-keys"
+echo ""
+echo "    Langfuse secrets stored at agentgateway/langfuse/config and agentgateway/langfuse/otel"
+echo "    To rotate Langfuse secrets, delete the path first, then re-run:"
+echo "    kubectl exec -n vault vault-0 -- vault kv metadata delete agentgateway/langfuse/config"

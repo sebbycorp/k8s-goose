@@ -66,6 +66,7 @@ agentgateway-gitops/
 │       ├── vault.yaml                 # Wave 4: HashiCorp Vault (dev mode)
 │       ├── external-secrets.yaml      # Wave 5: External Secrets Operator
 │       ├── solo-ui.yaml               # Wave 6: Solo UI management v0.4.5
+│       ├── langfuse.yaml             # Wave 6: Langfuse (langfuse-k8s v1.5.35)
 │       └── agentgateway-config.yaml   # Wave 7: Runtime config (routes, backends, etc.)
 ├── config/
 │   ├── gateway/
@@ -86,7 +87,10 @@ agentgateway-gitops/
 │   ├── external-secrets/
 │   │   ├── cluster-secret-store.yaml  # ClusterSecretStore → Vault via K8s auth
 │   │   ├── openai-external-secret.yaml # ExternalSecret: Vault → openai-secret
-│   │   └── xai-external-secret.yaml   # ExternalSecret: Vault → xai-secret
+│   │   ├── xai-external-secret.yaml   # ExternalSecret: Vault → xai-secret
+│   │   ├── langfuse-external-secret.yaml      # ExternalSecret: Vault → langfuse-secrets (ns langfuse)
+│   │   └── langfuse-otel-external-secret.yaml # ExternalSecret: Vault → langfuse-otel-auth
+│   ├── otel-collector/              # Trace fan-out collector (Solo + Langfuse)
 │   └── secrets/                       # (empty — secrets managed by Vault now)
 ├── platform/
 │   └── gateway-api-crds/
@@ -113,6 +117,8 @@ agentgateway-gitops/
 | **HashiCorp Vault** | `vault` | 0.32.0 | Secrets management — stores LLM API keys securely |
 | **External Secrets Operator** | `external-secrets` | 0.16.2 | Syncs Vault secrets into Kubernetes Secrets automatically |
 | **Solo UI** | `management` | 0.4.5 | Dashboard with tracing, playground, and route visualization |
+| **Langfuse** | `langfuse` (langfuse-k8s) | 1.5.35 | Self-hosted LLM observability — receives AgentGateway traces via OTel |
+| **OTel fan-out collector** | plain YAML | contrib 0.153.0 | Dual-exports gateway traces to the Solo collector and Langfuse |
 
 ### Config Layer (Plain YAML managed by ArgoCD)
 
@@ -132,6 +138,11 @@ agentgateway-gitops/
 | **ClusterSecretStore** | `external-secrets.io/v1` | `config/external-secrets/cluster-secret-store.yaml` | Connects ESO to Vault via Kubernetes auth. Cluster-wide scope. |
 | **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/openai-external-secret.yaml` | Syncs OpenAI API key from Vault → K8s Secret `openai-secret`. Refreshes hourly. |
 | **ExternalSecret** | `external-secrets.io/v1` | `config/external-secrets/xai-external-secret.yaml` | Syncs xAI API key from Vault → K8s Secret `xai-secret`. Refreshes hourly. |
+
+> **Trace flow:** AgentGateway → `otel-fanout-collector` (OTLP/gRPC :4317) →
+> fans out to (1) `solo-enterprise-telemetry-collector` → Solo UI and
+> (2) Langfuse (`langfuse-web:3000/api/public/otel`, OTLP/HTTP + Basic auth).
+> Langfuse credentials come from Vault via External Secrets.
 
 ## Deployment Order (Sync Waves)
 

@@ -1,0 +1,96 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: langfuse
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    chart: langfuse
+    repoURL: https://langfuse.github.io/langfuse-k8s
+    targetRevision: 1.5.35
+    helm:
+      valuesObject:
+        langfuse:
+          salt:
+            secretKeyRef:
+              name: langfuse-secrets
+              key: salt
+          encryptionKey:
+            secretKeyRef:
+              name: langfuse-secrets
+              key: encryption-key
+          nextauth:
+            secret:
+              secretKeyRef:
+                name: langfuse-secrets
+                key: nextauth-secret
+          additionalEnv:
+            - name: LANGFUSE_INIT_ORG_ID
+              value: goose
+            - name: LANGFUSE_INIT_ORG_NAME
+              value: goose
+            - name: LANGFUSE_INIT_PROJECT_ID
+              value: agentgateway
+            - name: LANGFUSE_INIT_PROJECT_NAME
+              value: agentgateway
+            - name: LANGFUSE_INIT_USER_EMAIL
+              value: sebastian.maniak@solo.io
+            - name: LANGFUSE_INIT_USER_NAME
+              value: "Sebastian Maniak"
+            - name: LANGFUSE_INIT_PROJECT_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-secrets
+                  key: init-public-key
+            - name: LANGFUSE_INIT_PROJECT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-secrets
+                  key: init-secret-key
+            - name: LANGFUSE_INIT_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-secrets
+                  key: init-user-password
+        postgresql:
+          auth:
+            existingSecret: langfuse-secrets
+            secretKeys:
+              userPasswordKey: postgres-password
+              adminPasswordKey: postgres-password
+        redis:
+          auth:
+            existingSecret: langfuse-secrets
+            existingSecretPasswordKey: redis-password
+        clickhouse:
+          replicaCount: 1
+          resourcesPreset: small
+          auth:
+            existingSecret: langfuse-secrets
+            existingSecretKey: clickhouse-password
+        s3:
+          accessKeyId:
+            secretKeyRef:
+              name: langfuse-secrets
+              key: minio-root-user
+          secretAccessKey:
+            secretKeyRef:
+              name: langfuse-secrets
+              key: minio-password
+          auth:
+            existingSecret: langfuse-secrets
+            rootUserSecretKey: minio-root-user
+            rootPasswordSecretKey: minio-password
+  destination:
+    namespace: langfuse
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
